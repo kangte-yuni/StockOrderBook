@@ -1,0 +1,90 @@
+﻿<Window x:Class="Client.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:Client.ViewModels"
+        xmlns:local="clr-namespace:Client.Converters"
+        xmlns:views="clr-namespace:Client.Views"
+        Title="OrderBook Window" Height="600" Width="900">
+
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:OrderBookPanelViewModel}">
+            <views:OrderBookPanelView/>
+        </DataTemplate>
+        <local:UtcToKSTConverter x:Key="UtcToKSTConverter"/>
+    </Window.Resources>
+
+    <Grid Margin="10">
+        <!-- Grid: Controls at top, Panels on left, Trade History on right -->
+        <Grid.RowDefinitions>
+            <!-- Controls -->
+            <RowDefinition Height="Auto"/>
+            <!-- Content -->
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <!-- Panels -->
+            <ColumnDefinition Width="3*"/>
+            <!-- Trade History -->
+            <ColumnDefinition Width="2*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- 1. Controls: span both columns -->
+        <StackPanel Orientation="Horizontal"
+                    Grid.Row="0"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2"
+                    Margin="0,0,0,10">
+            <Label Content="Select Ticker:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+            <ComboBox Width="120"
+                      ItemsSource="{Binding AvailableTickers}"
+                      SelectedItem="{Binding SelectedTicker}"
+                      Margin="0,0,10,0"/>
+            <Button Content="Add Panel"
+                    Command="{Binding AddPanelCommand}"
+                    CommandParameter="{Binding SelectedTicker}"/>
+        </StackPanel>
+
+        <!-- 2. Panels area on left -->
+        <ScrollViewer Grid.Row="1" Grid.Column="0" 
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl ItemsSource="{Binding Panels}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- 3. Trade History on right -->
+        <GroupBox Header="Trade History"
+                  Grid.Row="1"
+                  Grid.Column="1"
+                  Margin="10,0,0,0">
+            <DataGrid ItemsSource="{Binding TradeHistory}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      HeadersVisibility="Column"
+                      CanUserAddRows="False"
+                      CanUserResizeRows="False"
+                      SelectionMode="Single"
+                      ScrollViewer.VerticalScrollBarVisibility="Auto"
+                      RowHeight="25">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Time"
+                                        Binding="{Binding Time, Converter={StaticResource UtcToKSTConverter},StringFormat=HH:mm:ss.fff}" />
+                    <DataGridTextColumn Header="Side"    
+                                        Binding="{Binding Side}"/>
+                    <DataGridTextColumn Header="Ticker"  
+                                        Binding="{Binding Ticker}"/>
+                    <DataGridTextColumn Header="Price"   
+                                        Binding="{Binding Price, StringFormat=N2}"/>
+                    <DataGridTextColumn Header="Quantity" 
+                                        Binding="{Binding Quantity, StringFormat=N2}"
+                                        Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </GroupBox>
+    </Grid>
+</Window>

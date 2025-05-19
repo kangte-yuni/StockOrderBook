@@ -13,14 +13,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Client
+namespace Client.Views
 {
     /// <summary>
-    /// Interaction logic for MainWindow.xaml
+    /// Interaction logic for OrderBookPanelView.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class OrderBookPanelView : UserControl
     {
-        public MainWindow()
+        public OrderBookPanelView()
         {
             InitializeComponent();
         }
