@@ -5,6 +5,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<IOrderBookSimulator, OrderBookSimulator>();
+builder.Services.AddSingleton<ITradeStorage, FileTradeStorage>();
+builder.Services.AddHostedService<TradeHistoryPersistenceService>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy",

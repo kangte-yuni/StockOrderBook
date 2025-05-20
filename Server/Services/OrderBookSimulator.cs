@@ -14,15 +14,21 @@ namespace Server.Services
         // Random seeds per ticker
         private readonly ConcurrentDictionary<string, Random> _rands = new();
 
-        // 글로벌 Print(체결) 콜백 목록 (ticker 기준)
+        // Trade 체결 내역 ->Print 용 객체로 콜백 목록 (ticker 기준)
         private readonly List<Action<string, PrintEntry[]>> _printSubscribers = new();
         private readonly object _printLock = new();
+
+        // Trade 체결 내역 저장 용 객체 (panelId 기준)
+        private readonly List<Action<string, Trade[]>> _tradeSubscribers = new();
+        private readonly object _tradeLock = new();
 
         private readonly Timer _depthTimer;
         private readonly Timer _printTimer;
         private readonly Dictionary<string, (decimal Min, decimal Max)> _basePriceRanges;
         private readonly List<(decimal Min, decimal Max, decimal TickSize)> _tickSizeTable;
 
+        // Trade 데이터 저장을 위한 필드
+        private readonly ConcurrentBag<Trade> _allTradeHistory = new();        
         public OrderBookSimulator()
         {
             // S&P500 상위 10개 범위 설정
@@ -56,6 +62,35 @@ namespace Server.Services
         }
 
         /// <summary>
+        /// Trade 내역이 있으면 Load
+        /// </summary>
+        public void InitializeTrades(IEnumerable<Trade> tradeHistory)
+        {
+            foreach (var trade in tradeHistory)
+            {
+                _allTradeHistory.Add(trade);
+            }
+        }
+
+        /// <summary>
+        /// 전체 체결 내역 조회.
+        /// </summary>
+        public IReadOnlyList<Trade> GetAllTrades()
+            => _allTradeHistory.ToList();
+
+        /// <summary>
+        /// 전체 체결 중 마지막 'count'개 반환, 기본값 100
+        /// </summary>
+        public IReadOnlyList<Trade> GetRecentTrades(int count = 100)
+        {
+            var all = GetAllTrades();
+            if (all.Count <= count)
+                return all;
+            return all.Skip(all.Count - count).ToList();
+        }
+
+
+        /// <summary>
         /// Depth 전용 구독 (panelId 별)
         /// </summary>
         public void SubscribeDepth(string panelId, string ticker, Action<string, DepthEntry[]> depthCallback)
@@ -84,27 +119,26 @@ namespace Server.Services
             }
         }
 
-        /// <summary>
-        /// 글로벌 Print(체결) 구독
-        /// </summary>
         public void SubscribePrint(Action<string, PrintEntry[]> printCallback)
         {
             lock (_printLock)
-            {
                 _printSubscribers.Add(printCallback);
-            }
         }
-
-        /// <summary>
-        /// 글로벌 Print(체결) 구독 해제
-        /// </summary>
         public void UnsubscribePrint(Action<string, PrintEntry[]> printCallback)
         {
-            lock (_printLock)
-            {
+            lock (_printLock) 
                 _printSubscribers.Remove(printCallback);
-            }
         }
+        public void SubscribeTrade(Action<string, Trade[]> tradeCallback)
+        {
+            lock (_tradeLock) 
+                _tradeSubscribers.Add(tradeCallback);
+        }
+        public void UnsubscribeTrade(Action<string, Trade[]> tradeCallback)
+        {
+            lock (_tradeLock)
+                _tradeSubscribers.Remove(tradeCallback);
+        }        
 
         private void DepthTimerCallback(object _)
         {
@@ -149,27 +183,39 @@ namespace Server.Services
             foreach (var kv in _depthSubscriptions)
             {
                 var ticker = kv.Key;
-                var depthSubs = kv.Value;
-                if (depthSubs.IsEmpty) continue;
+                if (kv.Value.IsEmpty) continue;
                 var rand = _rands[ticker];
                 var basePrice = _basePriceRanges[ticker].Min; // 기본 가격은 Min으로 설정
                 var tickSize = _tickSizeTable.First(x => basePrice >= x.Min && basePrice < x.Max).TickSize;
-                // Print(체결) 생성 (한 건)
-                var print = new PrintEntry
+
+                var panelIds = kv.Value.Keys;
+                foreach (var panelId in panelIds)
                 {
-                    Time = DateTime.UtcNow,
-                    Side = rand.Next(0, 2) == 0 ? "Buy" : "Sell",
-                    Ticker = ticker,
-                    Price = basePrice + tickSize * rand.Next(-3, 4),
-                    Quantity = Math.Round((decimal)rand.Next(1, 10), 2)
-                };
-                var printArray = new[] { print };
-                // 글로벌 Print 전송
-                lock (_printLock)
-                {
-                    foreach (var cb in _printSubscribers)
-                        cb(ticker, printArray);
-                }
+                    // Trade 엔티티 생성
+                    var trade = new Trade
+                    {
+                        PanelId = panelId,
+                        Time = DateTime.UtcNow,
+                        Side = rand.Next(0, 2) == 0 ? "Buy" : "Sell",
+                        Ticker = ticker,
+                        Price = basePrice + tickSize * rand.Next(-3, 4),
+                        Quantity = Math.Round((decimal)rand.Next(1, 10), 2)
+                    };
+
+                    lock (_tradeLock)
+                    {
+                        foreach (var cb in _tradeSubscribers)
+                            cb(ticker, new[] { trade });
+                    }
+                    lock (_printLock)
+                    {
+                        // Print 용 데이터로 변경
+                        foreach (var cb in _printSubscribers)
+                            cb(ticker, new[] {trade.ToPrintEntry()});
+                    }
+
+                    _allTradeHistory.Add(trade);                    
+                }                           
             }
 
         }
@@ -178,6 +224,6 @@ namespace Server.Services
         {
             _depthTimer.Dispose();
             _printTimer.Dispose();
-        }
+        }        
     }
 }

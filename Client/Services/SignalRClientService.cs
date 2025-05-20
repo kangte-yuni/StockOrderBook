@@ -47,35 +47,16 @@ namespace Client.Services
         public Task StartAsync() => _connection.StartAsync();
 
         public async Task SubscribeAsync(string panelId, string ticker)
-    {
-        await EnsureStartAsync();
-        await _connection.InvokeAsync("Subscribe", panelId, ticker);
-        _subscriptions[panelId] = ticker;
-    }
-
-    public async Task UnsubscribeAsync(string panelId)
-    {
-        await EnsureStartAsync();
-        await _connection.InvokeAsync("Unsubscribe", panelId);
-        _subscriptions.TryRemove(panelId, out _);
-    }
-
-        private async Task EnsureStartAsync()
-        {
-            if (_connection.State == HubConnectionState.Disconnected)
-            {
-                try
-                {
-                    await _connection.StartAsync();
-                }
-                catch (Exception ex)
-                {
-                    Console.Error.WriteLine($"SignalR StartAsync failed: {ex.Message}");
-                    throw;
-                }
-            }
+        {        
+            await _connection.InvokeAsync("Subscribe", panelId, ticker);
+            _subscriptions[panelId] = ticker;
         }
 
+        public async Task UnsubscribeAsync(string panelId)
+        {        
+            await _connection.InvokeAsync("Unsubscribe", panelId);
+            _subscriptions.TryRemove(panelId, out _);
+        }
         private Task ResubscribeAllAsync()
         {
             foreach (var kvp in _subscriptions)
