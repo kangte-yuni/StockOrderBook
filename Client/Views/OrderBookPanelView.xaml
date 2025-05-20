@@ -4,7 +4,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
-             d:DesignWidth="420" d:DesignHeight="400">
+             d:DesignWidth="420" d:DesignHeight="400"
+             MinWidth="210"
+             Loaded="DepthScroll_LayoutUpdated">
 
     <UserControl.Resources>
         <!-- Ask 용 템플릿-->
@@ -98,13 +100,11 @@
     <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="4" Padding="5" Margin="5">
         <Grid>
             <Grid.RowDefinitions>
-                <!-- 헤더 -->
                 <RowDefinition Height="Auto"/>
                 <!-- Depth (Ask+line+Bid) -->
-                <RowDefinition Height="220"/>
+                <RowDefinition Height="300"/>
             </Grid.RowDefinitions>
 
-            <!-- 헤더 -->
             <DockPanel Grid.Row="0" Margin="0,0,0,5">
                 <TextBlock Text="{Binding Ticker}"
                            FontSize="16" FontWeight="Bold"
@@ -115,16 +115,18 @@
                         DockPanel.Dock="Right"/>
             </DockPanel>
 
-            <!-- Depth 전체 -->
-            <ScrollViewer x:Name="DepthScroll"
-                          Grid.Row="1"
-                          VerticalScrollBarVisibility="Visible">
+            <ScrollViewer x:Name="DepthScroll" 
+                          Grid.Row="1" 
+                          VerticalScrollBarVisibility="Visible" 
+                          Loaded="DepthScroll_LayoutUpdated">
                 <StackPanel>
                     <!-- Ask 10단계 -->
-                    <ItemsControl ItemsSource="{Binding Asks}"
+                    <ItemsControl x:Name="AskItemsControl" 
+                                  ItemsSource="{Binding Asks}" 
                                   ItemTemplate="{StaticResource AskRowTemplate}"/>
                     <!-- Bid 10단계 -->
-                    <ItemsControl ItemsSource="{Binding Bids}"
+                    <ItemsControl x:Name="BidItemsControl" 
+                                  ItemsSource="{Binding Bids}" 
                                   ItemTemplate="{StaticResource BidRowTemplate}"/>
                 </StackPanel>
             </ScrollViewer>
