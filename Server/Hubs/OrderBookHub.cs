@@ -26,7 +26,7 @@ namespace Server.Hubs
         /// <summary>
         /// 클라이언트가 호출: 해당 panelId, ticker 로 Depth 구독 시작
         /// </summary>
-        public Task Subscribe(string panelId, string ticker)
+        public async Task Subscribe(string panelId, string ticker)
         {
             var connId = Context.ConnectionId;
 
@@ -41,6 +41,14 @@ namespace Server.Hubs
             var bag = _connPanels.GetOrAdd(connId, _ => new ConcurrentBag<string>());
             bag.Add(panelId);
 
+            // 과거 체결 내역: 전체 중 마지막 100개만 전송
+            var recent = _sim.GetRecentTrades(100).Select(trade => trade.ToPrintEntry()).ToArray();
+            if (recent != null && recent.Length > 0)
+            {
+                await _ctx.Clients.Client(connId)
+                       .SendAsync("ReceivePrint", panelId, recent);
+            }
+
             // 최초 구독 시 글로벌 Print 구독 등록
             if (!_connPrintCallbacks.ContainsKey(connId))
             {
@@ -52,9 +60,7 @@ namespace Server.Hubs
                 {
                     _sim.SubscribePrint(printCb);
                 }
-            }
-
-            return Task.CompletedTask;
+            }                      
         }
 
         /// <summary>

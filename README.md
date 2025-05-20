@@ -54,7 +54,12 @@ Server/
 ├── Services/
 │   └── OrderBookSimulator.cs # 호가/체결 데이터 시뮬레이터
 │   └── IOrderBookSimulator.cs
+│   └── ITradeStorage.cs      # Trade 데이터 저장 서비스의 인터페이스
+│   └── FileTradeStorage.cs   # Trade 데이터를 File 형태로 저장하는 서비스
+│   └── TradeHistoryPersistenceService.cs  # ITradeStorage 와 IOrderBookSimulator 을 참조하여, Simulator로 부터 제공받은 Trade 데이터를 백그라운드에서 저장하는 작업을 하는 서비스
 ├── Models/
-│   └── DepthEntry.cs, PrintEntry.cs # 호가/체결 데이터 모델
+│   └── DepthEntry.cs # 호가 데이터 모델
+│   └── PrintEntry.cs # 체결 데이터 모델 (Client 출력용)
+│   └── Trade.cs # 체결 데이터 모델 (저장 용 Entity)
 ├── Program.cs
 ```
