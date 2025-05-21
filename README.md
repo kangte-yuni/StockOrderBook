@@ -23,10 +23,10 @@ Client/
 │   └── OrderBookPanelView.xaml
 ├── ViewModels/             # MVVM ViewModels
 │   └── MainViewModel.cs    # Server 측 Simulator의 Depth 정보 이벤트 구독
-│   └── OrderBookPanelViewModel.cs # Server측 Simulator의 Print 정보 이벤트 구독
+│   └── OrderBookPanelViewModel.cs # Server측 Simulator의 Print 정보 이벤트 구독 및 매수/매도 주문
 ├── Services/               # Server 측 Realtime데이터 수신 서비스 및 인터페이스
 │   └── IRealtimeConnectionService.cs  # 특정 실시간 데이터 처리 기술에 종속되지 않기 위한 인터페이스
-│   └── SignalRClientService.cs        # SignalR Client
+│   └── SignalRClientService.cs        # SignalR Client으로, 실시간 데이터 Subscribe/Unsubscribe 및 매수/매도 주문 기능 Invoke
 ├── Models/                 # 데이터 모델
 │   └── DepthEntry.cs
 │   └── PrintEntry.cs
@@ -52,7 +52,7 @@ Server/
 ├── Hubs/
 │   └── OrderBookHub.cs # SignalR Hub 정의
 ├── Services/
-│   └── OrderBookSimulator.cs # 호가/체결 데이터 시뮬레이터
+│   └── OrderBookSimulator.cs # 호가/체결 데이터 시뮬레이터 및 매수/매도 주문 요청 시, 즉시 체결하여 File에 저장 및 Client에 체결 데이터 전송
 │   └── IOrderBookSimulator.cs
 │   └── ITradeStorage.cs      # Trade 데이터 저장 서비스의 인터페이스
 │   └── FileTradeStorage.cs   # Trade 데이터를 File 형태로 저장하는 서비스
