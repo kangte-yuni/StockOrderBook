@@ -28,6 +28,13 @@ namespace Client.ViewModels
 
         private readonly IRealtimeConnectionService _realtimeService;
 
+        // 매수/매도 주문 관련
+        [ObservableProperty] private string orderPrice;
+        [ObservableProperty] private string orderQuantity;
+
+        public IAsyncRelayCommand PlaceBuyOrderCommand { get; }
+        public IAsyncRelayCommand PlaceSellOrderCommand { get; }
+
         public OrderBookPanelViewModel(IRealtimeConnectionService realtimeService, string ticker)
         {
             _realtimeService = realtimeService;
@@ -44,6 +51,9 @@ namespace Client.ViewModels
 
             // 생성 직후 구독 시작
             _ = SubscribeAsync();
+
+            PlaceBuyOrderCommand = new AsyncRelayCommand(OnPlaceBuyOrder);
+            PlaceSellOrderCommand = new AsyncRelayCommand(OnPlaceSellOrder);
         }
 
         /// <summary>
@@ -105,6 +115,24 @@ namespace Client.ViewModels
             target.Clear();
             foreach (var item in items)
                 target.Add(item);
+        }
+
+        private async Task OnPlaceBuyOrder()
+        {
+            if (decimal.TryParse(OrderPrice, out var price) && int.TryParse(OrderQuantity, out var qty))
+            {
+                // 매수 주문 처리
+                await _realtimeService.PlaceBuyOrderAsync(Ticker, price, qty);
+            }
+        }
+
+        private async Task OnPlaceSellOrder()
+        {
+            if (decimal.TryParse(OrderPrice, out var price) && int.TryParse(OrderQuantity, out var qty))
+            {
+                // 매도 주문 처리
+                await _realtimeService.PlaceSellOrderAsync(Ticker, price, qty);
+            }
         }
 
         public void Dispose()
