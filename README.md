@@ -1,12 +1,17 @@
 # 📈 StockOrderBook
 
-`StockOrderBook`은 실시간 주식 호가 데이터를 시뮬레이션하고 시각화하는 시스템으로,  
+`StockOrderBook`은 실시간 주식 호가 데이터를 시뮬레이션하고 시각화하는 시스템으로,
+
 - **Client**는 WPF (.NET 8) 기반의 데스크톱 애플리케이션이고,
 - **Server**는 ASP.NET Core (.NET 8) 기반의 SignalR 서버로 구성되어 있습니다.
+
+**전체 구조도**
+![image](https://github.com/user-attachments/assets/ee681b74-692f-4b68-b499-cee6b977f639)
 
 ---
 
 ## Client (WPF, .NET 8)
+
 ### 📌 개요
 
 - 사용자에게 다중 종목의 실시간 호가 패널을 제공
@@ -15,7 +20,13 @@
 - MVVM 패턴 기반
 - DI 컨테이너를 직접 구성하여 ViewModel과 Service 분리
 
+### 📐 아키텍처 다이어그램
+
+- MVVM 기반이며, Server 측과 상호작용하는 부분을 IRealtimeConnectionService 라는 인터페이스를 구현한 SignalRClientService 클래스를 설계
+  ![image](https://github.com/user-attachments/assets/494c41b5-303b-45ca-8930-7efb2bb5f3db)
+
 ### 📁 폴더 구조
+
 ```
 Client/
 ├── Views/                  # WPF XAML 화면 구성
@@ -36,17 +47,21 @@ Client/
 └── Client.csproj           # WPF 프로젝트 설정
 ```
 
-
-
-
 ## Server (ASP.NET Core SignalR, .NET 8)
+
 ### 📌 개요
+
 - SignalR 기반의 실시간 통신 서버
 - 시뮬레이션된 Depth, Print 데이터를 클라이언트에 전송
 - 각 패널(panelId), 연결(connectionId)을 기준으로 구독 관리
 - 다수의 클라이언트/패널이 동일한 종목을 구독해도 하나의 시뮬레이터 인스턴스로 처리
 
+### 📐 아키텍처 다이어그램
+
+![image](https://github.com/user-attachments/assets/d4c874a3-4bea-4af4-95e4-6b5f40cfe960)
+
 ### 📁 폴더 구조
+
 ```
 Server/
 ├── Hubs/
