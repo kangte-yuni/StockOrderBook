@@ -107,5 +107,28 @@ namespace Server.Hubs
 
             return base.OnDisconnectedAsync(exception);
         }
+
+        // 매수 주문 처리
+        public async Task PlaceBuyOrder(string ticker, decimal price, int quantity)
+        {
+            Console.WriteLine($"[BUY ORDER] Ticker: {ticker}, Price: {price}, Qty: {quantity}");
+
+            // 시뮬레이터에 주문 요청
+            _sim.PlaceOrder(ticker: ticker, side: "Buy", price:price, quantity: quantity,timestamp: DateTime.UtcNow);
+
+            //await Clients.Caller.SendAsync("BuyOrderConfirmed", ticker, price, quantity);
+        }
+
+
+        // 매도 주문 처리
+        public async Task PlaceSellOrder(string ticker, decimal price, int quantity)
+        {
+            Console.WriteLine($"[SELL ORDER] Ticker: {ticker}, Price: {price}, Qty: {quantity}");
+
+            // 시뮬레이터에 주문 요청
+            _sim.PlaceOrder(ticker: ticker, side: "Sell", price:  price, quantity: quantity, timestamp:DateTime.UtcNow);
+
+            //await Clients.Caller.SendAsync("SellOrderConfirmed", ticker, price, quantity);
+        }
     }
 }

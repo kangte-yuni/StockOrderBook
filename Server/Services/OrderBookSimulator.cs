@@ -193,31 +193,50 @@ namespace Server.Services
                 {
                     // Trade 엔티티 생성
                     var trade = new Trade
-                    {
-                        PanelId = panelId,
+                    {                        
                         Time = DateTime.UtcNow,
-                        Side = rand.Next(0, 2) == 0 ? "Buy" : "Sell",
+                        Side = rand.Next(0, 2) == 0 ? "Buy": "Sell",
                         Ticker = ticker,
                         Price = basePrice + tickSize * rand.Next(-3, 4),
                         Quantity = Math.Round((decimal)rand.Next(1, 10), 2)
                     };
 
-                    lock (_tradeLock)
-                    {
-                        foreach (var cb in _tradeSubscribers)
-                            cb(ticker, new[] { trade });
-                    }
-                    lock (_printLock)
-                    {
-                        // Print 용 데이터로 변경
-                        foreach (var cb in _printSubscribers)
-                            cb(ticker, new[] {trade.ToPrintEntry()});
-                    }
-
-                    _allTradeHistory.Add(trade);                    
+                    HandleTradeEvent(ticker, trade);
                 }                           
             }
 
+        }
+
+        // Client 에서 매수/매도 주문 즉시 체결로 가정.
+        public void PlaceOrder(string ticker, string side, decimal price, int quantity, DateTime timestamp)
+        {
+            var trade = new Trade
+            {
+                Ticker = ticker,
+                Side = side,
+                Price = price,
+                Quantity = quantity,
+                Time = timestamp
+            };
+
+            HandleTradeEvent(ticker, trade);
+        }
+
+        // File에 저장하거나 UI에 표시하는 이벤트 발생
+        private void HandleTradeEvent(string ticker, Trade trade)
+        {            
+            lock (_tradeLock)
+            {
+                foreach (var cb in _tradeSubscribers)
+                    cb(ticker, new[] { trade });
+            }
+            lock (_printLock)
+            {
+                // Print 용 데이터로 변경
+                foreach (var cb in _printSubscribers)
+                    cb(ticker, new[] { trade.ToPrintEntry() });
+            }
+            _allTradeHistory.Add(trade);
         }
 
         public void Dispose()

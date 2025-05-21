@@ -1,8 +1,8 @@
 ﻿namespace Server.Models
 {
+    // PrintEntry 와 Trade Entity 를 구분하기 위한 클래스(DTO). 본 과제에서는 동일한 구조를 사용.
     public class Trade
-    {
-        public string PanelId { get; set; }
+    {        
         // 체결 시간
         public DateTime Time { get; set; }
         // 매수/매도 구분

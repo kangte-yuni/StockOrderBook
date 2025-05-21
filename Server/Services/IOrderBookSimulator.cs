@@ -16,5 +16,7 @@ namespace Server.Services
         void InitializeTrades(IEnumerable<Trade> tradeHistory);
         IReadOnlyList<Trade> GetAllTrades();
         IReadOnlyList<Trade> GetRecentTrades(int count);
+        // 매수/매도 주문 처리
+        void PlaceOrder(string ticker, string side, decimal price, int quantity, DateTime timestamp);
     }
 }
