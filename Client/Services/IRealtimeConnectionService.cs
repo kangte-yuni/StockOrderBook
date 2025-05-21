@@ -14,5 +14,7 @@ namespace Client.Services
         Task UnsubscribeAsync(string panelId);
         void OnDepth(Action<string, DepthEntry[]> handler);
         void OnPrint(Action<string, PrintEntry[]> handler);
+        Task PlaceBuyOrderAsync(string ticker, decimal price, int quantity);
+        Task PlaceSellOrderAsync(string ticker, decimal price, int quantity);
     }
 }

@@ -67,5 +67,19 @@ namespace Client.Services
             }
             return Task.CompletedTask;
         }
+
+        // 매수 주문 메서드
+        public async Task PlaceBuyOrderAsync(string ticker, decimal price, int quantity)
+        {
+            Console.WriteLine($"BUY order: {ticker} / {price} / {quantity}");
+            await _connection.InvokeAsync("PlaceBuyOrder", ticker, price, quantity);
+        }
+
+        // 매도 주문 메서드
+        public async Task PlaceSellOrderAsync(string ticker, decimal price, int quantity)
+        {
+            Console.WriteLine($"SELL order: {ticker} / {price} / {quantity}");
+            await _connection.InvokeAsync("PlaceSellOrder", ticker, price, quantity);
+        }
     }
 }
